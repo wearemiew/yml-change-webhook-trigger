@@ -48,7 +48,7 @@ jobs:
         if: github.event_name == 'workflow_run'
         id: download-artifact
         continue-on-error: true # If artifact download fails, we'll try other methods
-        uses: dawidd6/action-download-artifact@v2 # Using a community action to download artifacts
+        uses: dawidd6/action-download-artifact@v10 # Using a community action to download artifacts
         with:
           workflow: auto-version.yml # Name of the workflow file that produced the artifact
           workflow_conclusion: success # Only download if the producing workflow was successful
