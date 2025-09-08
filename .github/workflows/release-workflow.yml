@@ -375,7 +375,7 @@ jobs:
       # Step 8: Setup Node.js environment
       - name: Setup Node.js
         if: steps.setup-release.outputs.should_release == 'true' && steps.setup-release.outputs.version != 'unknown'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "20" # Specify Node.js version
           cache: "npm" # Cache npm dependencies
