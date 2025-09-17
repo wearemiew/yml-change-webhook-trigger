@@ -1,4 +1,38 @@
-## [1.5.2](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.5.1...v1.5.2) (2025-05-14)
+# [1.6.0](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.5.2...v1.6.0) (2025-09-17)
+
+
+### Bug Fixes
+
+* **workflow:** enhance release workflow triggers to include push events ([7dddcc0](https://github.com/wearemiew/yml-change-webhook-trigger/commit/7dddcc0f33c3cda5efa557f08141ff0285da8342))
+
+
+### Features
+
+* add module type to package.json and configure ESLint ([60de137](https://github.com/wearemiew/yml-change-webhook-trigger/commit/60de1379613da1d208f814611cce4b2ac85249c5))
+
+
+
+## [1.5.2](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.3.1...v1.5.2) (2025-05-14)
+
+
+
+## [1.5.1](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.5.0...v1.5.1) (2025-05-14)
+
+
+
+# [1.5.0](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.4.1...v1.5.0) (2025-05-14)
+
+
+
+## [1.4.1](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.4.0...v1.4.1) (2025-05-13)
+
+
+
+# [1.4.0](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.3.2...v1.4.0) (2025-05-13)
+
+
+
+## [1.3.1](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.5.1...v1.3.1) (2025-05-14)
 
 
 ### Bug Fixes
@@ -22,14 +56,6 @@
 ### Features
 
 * **ci:** improve release notes with categorized changes and better formatting ([add10ff](https://github.com/wearemiew/yml-change-webhook-trigger/commit/add10ff694fc8085a44f60afcd01b00e8bfec7b5))
-
-
-
-## [1.4.1](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.4.0...v1.4.1) (2025-05-13)
-
-
-
-# [1.4.0](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.3.1...v1.4.0) (2025-05-13)
 
 
 
