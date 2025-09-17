@@ -1,8 +1,8 @@
 // test-version-detection.js
 // A Node.js script to test version detection logic locally
 
-const { execSync } = require('child_process');
-const fs = require('fs');
+// const { execSync } = require('child_process');
+// const fs = require('fs');
 
 console.log("Testing version detection logic");
 console.log("------------------------------");
