@@ -1,3 +1,12 @@
+## [1.6.1](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.6.0...v1.6.1) (2025-09-17)
+
+
+### Bug Fixes
+
+* **workflow:** simplify conditional expression for job execution ([acbcd4d](https://github.com/wearemiew/yml-change-webhook-trigger/commit/acbcd4df4177fa940f4487f41b55060891555087))
+
+
+
 # [1.6.0](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.5.2...v1.6.0) (2025-09-17)
 
 
@@ -47,15 +56,6 @@
 ### Bug Fixes
 
 * **workflow:** resolve syntax issues in release workflow ([436daf0](https://github.com/wearemiew/yml-change-webhook-trigger/commit/436daf08a767f7f7d58c97b0ee37538c2f2f2726))
-
-
-
-# [1.5.0](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.4.1...v1.5.0) (2025-05-14)
-
-
-### Features
-
-* **ci:** improve release notes with categorized changes and better formatting ([add10ff](https://github.com/wearemiew/yml-change-webhook-trigger/commit/add10ff694fc8085a44f60afcd01b00e8bfec7b5))
 
 
 
