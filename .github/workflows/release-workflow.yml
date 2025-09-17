@@ -9,6 +9,9 @@ name: Release Workflow
 # - Updated version tags
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       version_bump:
@@ -33,9 +36,14 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # This job should run if the triggering workflow ('Auto Version Update') was successful,
-    # OR if the workflow was triggered manually via workflow_dispatch.
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    # This job should run if:
+    # - The triggering workflow ('Auto Version Update') was successful
+    # - The workflow was triggered manually via workflow_dispatch
+    # - The workflow was triggered by a push to main
+    if: >-
+      ${ { github.event.workflow_run.conclusion == 'success' ||
+           github.event_name == 'workflow_dispatch' ||
+           github.event_name == 'push' } }
     permissions:
       contents: write # Needed to push new tags, commit package.json changes, and create releases
       packages: write # If you are publishing packages to GitHub Packages (not used in this example but good practice if needed)
