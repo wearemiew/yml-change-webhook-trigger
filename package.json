@@ -6,8 +6,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build src/index.js -o dist",
-    "test": "cross-env NODE_ENV=test jest --config jest.config.js --passWithNoTests",
-    "test:watch": "cross-env NODE_ENV=test jest --config jest.config.js --watch --passWithNoTests",
+    "test": "cross-env NODE_ENV=test jest --config jest.config.cjs --passWithNoTests",
+    "test:watch": "cross-env NODE_ENV=test jest --config jest.config.cjs --watch --passWithNoTests",
     "lint": "eslint .",
     "format": "prettier --write '**/*.{js,json,yml,yaml}'",
     "prepare": "npm run build",
