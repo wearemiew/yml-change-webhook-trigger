@@ -4,7 +4,7 @@
   "description": "GitHub Action to detect YML changes and trigger webhooks",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/index.js -o dist",
+    "build": "ncc build src/index.js -o dist && node -e \"require('fs').writeFileSync('dist/package.json', JSON.stringify({type: 'commonjs'}))\"",
     "test": "cross-env NODE_ENV=test jest --config jest.config.cjs --passWithNoTests",
     "test:watch": "cross-env NODE_ENV=test jest --config jest.config.cjs --watch --passWithNoTests",
     "lint": "eslint .",

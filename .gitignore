@@ -4,6 +4,7 @@ jspm_packages/
 
 # Build output
 dist/
+!dist/package.json
 
 # Logs
 logs
