@@ -17,14 +17,23 @@ function detectChanges(baseRef) {
       core.info(`Using base reference: ${base || "default"}`);
       command = `git diff --name-only origin/${base || "main"}...HEAD`;
     } else {
-      // For push events, compare with the previous commit
-      // Check if HEAD^ exists (more than one commit)
-      try {
-        execSync('git rev-parse --verify HEAD^', { stdio: 'ignore' });
-        command = `git diff --name-only HEAD^`;
-      } catch {
-        // If HEAD^ doesn't exist (only one commit), show all files in current commit
-        command = `git diff --name-only --diff-filter=A HEAD`;
+      // For push events, use the GitHub event context to get the actual commit range
+      const beforeSha = process.env.GITHUB_EVENT_BEFORE;
+      const afterSha = process.env.GITHUB_SHA;
+
+      if (beforeSha && beforeSha !== '0000000000000000000000000000000000000000') {
+        // Use the actual commit range from the push event
+        command = `git diff --name-only ${beforeSha}..${afterSha}`;
+        core.info(`Comparing ${beforeSha.substring(0,7)}..${afterSha.substring(0,7)}`);
+      } else {
+        // Fallback: Check if HEAD^ exists (more than one commit)
+        try {
+          execSync('git rev-parse --verify HEAD^', { stdio: 'ignore' });
+          command = `git diff --name-only HEAD^`;
+        } catch {
+          // If HEAD^ doesn't exist (only one commit), show all files in current commit
+          command = `git diff --name-only --diff-filter=A HEAD`;
+        }
       }
     }
 
