@@ -1,3 +1,12 @@
+## [1.6.3](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.6.2...v1.6.3) (2025-09-18)
+
+
+### Bug Fixes
+
+* **workflows:** update Jest configuration file references from .js to .cjs ([cadc60c](https://github.com/wearemiew/yml-change-webhook-trigger/commit/cadc60cb8b7cfb3aa96a1299b4155444517eb0a1))
+
+
+
 ## [1.6.2](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.6.1...v1.6.2) (2025-09-17)
 
 
@@ -47,15 +56,6 @@
 
 
 # [1.4.0](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.3.2...v1.4.0) (2025-05-13)
-
-
-
-## [1.3.1](https://github.com/wearemiew/yml-change-webhook-trigger/compare/v1.5.1...v1.3.1) (2025-05-14)
-
-
-### Bug Fixes
-
-* **workflow:** use portable string appending for release notes generation in bash ([f646fcd](https://github.com/wearemiew/yml-change-webhook-trigger/commit/f646fcdbfa2596fd95d42cd7a194e388b91b6a7a))
 
 
 

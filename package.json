@@ -1,6 +1,6 @@
 {
   "name": "yml-change-webhook-trigger",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "GitHub Action to detect YML changes and trigger webhooks",
   "type": "module",
   "main": "dist/index.js",
