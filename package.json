@@ -2,7 +2,6 @@
   "name": "yml-change-webhook-trigger",
   "version": "1.7.0",
   "description": "GitHub Action to detect YML changes and trigger webhooks",
-  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build src/index.js -o dist",
