@@ -34385,9 +34385,14 @@ function detectChanges(baseRef) {
       command = `git diff --name-only origin/${base || "main"}...HEAD`;
     } else {
       // For push events, compare with the previous commit
-      // Check if there's more than one commit in the repository
-      // Always attempt to diff with HEAD^, even if only one commit exists
-      command = `git diff --name-only HEAD^`;
+      // Check if HEAD^ exists (more than one commit)
+      try {
+        execSync('git rev-parse --verify HEAD^', { stdio: 'ignore' });
+        command = `git diff --name-only HEAD^`;
+      } catch {
+        // If HEAD^ doesn't exist (only one commit), show all files in current commit
+        command = `git diff --name-only --diff-filter=A HEAD`;
+      }
     }
 
     core.debug(`Executing command: ${command}`);
