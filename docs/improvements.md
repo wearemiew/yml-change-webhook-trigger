@@ -1,9 +1,11 @@
 # GitHub Actions Workflow Improvements
+
 ## YML Change Webhook Trigger
 
 This document outlines recommended improvements for the GitHub Actions workflows in the `yml-change-webhook-trigger` repository.
 
 ## Table of Contents
+
 1. [Workflow Consolidation](#1-workflow-consolidation) - ✅ Done
 2. [Environment Variables and Secrets Management](#2-environment-variables-and-secrets-management) - ⬜ Not Started
 3. [Caching Improvements](#3-caching-improvements) - ✅ Done
@@ -21,15 +23,18 @@ This document outlines recommended improvements for the GitHub Actions workflows
 ## 1. Workflow Consolidation
 
 ### Current Issues
+
 - Duplicate functionality between `release.yml` and `release-workflow.yml`
 - Redundant code and potential for inconsistencies
 
 ### Recommendations
+
 - Remove the older `release.yml` file (✅ Already done)
 - Keep the more comprehensive `release-workflow.yml` (✅ Using this file)
 - Ensure all necessary functionality from `release.yml` is preserved in the consolidated workflow (✅ Completed)
 
 ### Implementation
+
 1. Delete `.github/workflows/release.yml` (✅ File already removed)
 2. Ensure `release-workflow.yml` includes all required steps for releases (✅ Confirmed - the workflow includes all necessary steps)
 
@@ -38,10 +43,12 @@ This document outlines recommended improvements for the GitHub Actions workflows
 ## 2. Environment Variables and Secrets Management
 
 ### Current Issues
+
 - Environment variables are scattered and repeated across workflow files
 - No clear separation between different environments (production, staging, etc.)
 
 ### Recommendations
+
 - Create a centralized approach for environment variables
 - Add support for environment-specific configurations
 - Use GitHub's environment feature for better secret management
@@ -53,11 +60,11 @@ This document outlines recommended improvements for the GitHub Actions workflows
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: production  # Can be staging, development, etc.
+    environment: production # Can be staging, development, etc.
     env:
       NODE_ENV: ${{ vars.NODE_ENV || 'production' }}
       LOG_LEVEL: ${{ vars.LOG_LEVEL || 'info' }}
-    
+
     steps:
       # Existing steps...
       - name: Build with environment configuration
@@ -76,10 +83,12 @@ jobs:
 ## 3. Caching Improvements
 
 ### Current Issues
+
 - Basic Node.js module caching is implemented, but build artifacts are not cached
 - Build time could be reduced with more specific caching
 
 ### Recommendations
+
 - Enhance module caching with more precise cache keys (✅ Implemented)
 - Implement build artifact caching (✅ Implemented)
 - Use dependency lockfiles for cache keys (✅ Implemented)
@@ -91,10 +100,10 @@ jobs:
 - name: Setup Node.js
   uses: actions/setup-node@v4
   with:
-    node-version: '20'
-    cache: 'npm'
+    node-version: "20"
+    cache: "npm"
     cache-dependency-path: package-lock.json
-    
+
 - name: Cache build results
   uses: actions/cache@v3
   with:
@@ -119,10 +128,12 @@ jobs:
 ## 4. Error Handling & Reporting
 
 ### Current Issues
+
 - Minimal error reporting to external channels
 - No notification system for workflow failures
 
 ### Recommendations
+
 - Add Slack notifications for workflow failures and successes
 - Implement detailed error reports with debugging information
 - Create summary reports for stakeholders
@@ -177,10 +188,12 @@ jobs:
 ## 5. Security Enhancements
 
 ### Current Issues
+
 - No automated security scanning in the current workflow
 - No checks for security vulnerabilities in dependencies
 
 ### Recommendations
+
 - Implement CodeQL security scanning (✅ Implemented in test.yml)
 - Add npm security auditing (✅ Added to test.yml)
 - Perform JS linting with security rules (✅ Added to workflow)
@@ -202,8 +215,8 @@ Created a dedicated security workflow:
 name: Security Audit
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Run weekly
-  workflow_dispatch:  # Allow manual triggering
+    - cron: "0 0 * * 0" # Run weekly
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   audit:
@@ -212,20 +225,20 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          
+          node-version: "20"
+
       - name: Audit dependencies
         run: npm audit --audit-level=moderate
         continue-on-error: true
-        
+
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-          project: 'yml-change-webhook-trigger'
-          path: '.'
-          format: 'HTML'
-          out: 'reports'
-          
+          project: "yml-change-webhook-trigger"
+          path: "."
+          format: "HTML"
+          out: "reports"
+
       - name: Upload report
         uses: actions/upload-artifact@v4
         with:
@@ -238,10 +251,12 @@ jobs:
 ## 6. Dependency Updates
 
 ### Current Issues
+
 - No automated dependency update process
 - Manual dependency management can lead to outdated packages
 
 ### Recommendations
+
 - Implement Dependabot for automatic dependency updates (✅ Implemented)
 - Add a scheduled security audit job (✅ Implemented)
 - Set up automated pull requests for dependency updates (✅ Implemented)
@@ -263,7 +278,7 @@ updates:
       - "dependencies"
       - "automerge"
     versioning-strategy: auto
-    
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -290,27 +305,27 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      
+
       # Run tests to ensure dependencies don't break anything
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-      
+          node-version: "20"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run tests
         run: npm test
-      
+
       # Auto-merge if tests pass
       - name: Auto-merge
         if: success()
         uses: fastify/github-action-merge-dependabot@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: 'squash'
+          merge-method: "squash"
 ```
 
 ---
@@ -318,11 +333,13 @@ jobs:
 ## 7. Webhook Execution Improvements
 
 ### Current Issues
+
 - No retry mechanism for failed webhooks
 - No timeout handling, potentially causing workflow hangs
 - Limited validation of webhook responses
 
 ### Recommendations
+
 - Implement retry logic for failed webhooks (✅ Implemented)
 - Add timeout handling to prevent workflow hangs (✅ Implemented)
 - Include more detailed payload information (✅ Implemented)
@@ -338,18 +355,20 @@ Update `src/execute-webhooks.js`:
 // 1. Retry mechanism with exponential backoff
 const executeWithRetry = async (url, data, retries = 3) => {
   try {
-    return await axios.post(url, data, { 
-      timeout: 10000,  // 10 second timeout
+    return await axios.post(url, data, {
+      timeout: 10000, // 10 second timeout
       headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'YML-Change-Webhook-Action'
-      }
+        "Content-Type": "application/json",
+        "User-Agent": "YML-Change-Webhook-Action",
+      },
     });
   } catch (error) {
     if (retries > 0) {
       const waitTime = 1000 * Math.pow(2, 3 - retries); // Exponential backoff
-      core.info(`Retrying webhook (${retries} attempts left, waiting ${waitTime}ms)...`);
-      await new Promise(r => setTimeout(r, waitTime));
+      core.info(
+        `Retrying webhook (${retries} attempts left, waiting ${waitTime}ms)...`
+      );
+      await new Promise((r) => setTimeout(r, waitTime));
       return executeWithRetry(url, data, retries - 1);
     }
     throw error;
@@ -358,12 +377,12 @@ const executeWithRetry = async (url, data, retries = 3) => {
 
 // 2. Enhanced payload with repository context
 const payload = {
-  source: 'yml-change-webhook',
+  source: "yml-change-webhook",
   file: file,
   repository: process.env.GITHUB_REPOSITORY,
   ref: process.env.GITHUB_REF,
   sha: process.env.GITHUB_SHA,
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 };
 
 // 3. Parallel execution with batching
@@ -373,7 +392,7 @@ for (let i = 0; i < uniqueWebhooks.length; i += batchSize) {
   const batchPromises = batch.map(async (webhook) => {
     // webhook processing
   });
-  
+
   await Promise.all(batchPromises);
 }
 ```
@@ -383,11 +402,13 @@ for (let i = 0; i < uniqueWebhooks.length; i += batchSize) {
 ## 8. Workflow Triggers Optimization
 
 ### Current Issues
+
 - Some workflows may run unnecessarily
 - Path filters could be more specific
 - No branch filtering to reduce CI load
 
 ### Recommendations
+
 - Optimize the workflow triggers to prevent unnecessary runs (✅ Implemented)
 - Add branch exclusions for maintenance branches (✅ Implemented)
 - Use more specific path patterns (✅ Implemented)
@@ -403,19 +424,19 @@ on:
       - "src/**"
       - "**.y{a,}ml"
       - "package*.json"
-      - "jest.config.js"
+      - "jest.config.cjs"
     branches-ignore:
-      - 'dependabot/**'
-      - 'docs/**'
+      - "dependabot/**"
+      - "docs/**"
   pull_request:
     paths:
       - "src/**"
       - "**.y{a,}ml"
       - "package*.json"
-      - "jest.config.js"
+      - "jest.config.cjs"
     branches:
       - main
-      - 'feature/**'
+      - "feature/**"
 ```
 
 ---
@@ -423,10 +444,12 @@ on:
 ## 9. Documentation Updates
 
 ### Current Issues
+
 - Limited workflow documentation
 - No clear explanation of workflow dependencies and integration points
 
 ### Recommendations
+
 - Add comprehensive workflow documentation as code comments (✅ Implemented in test.yml)
 - Include information about expected outputs, requirements, and integration points (✅ Implemented)
 - Create README sections for each workflow (✅ Started with improvements.md documentation)
@@ -455,10 +478,12 @@ We've also created this improvements.md document that serves as documentation fo
 ## 10. Parallelization for Performance
 
 ### Current Issues
+
 - Limited parallelization of test and build jobs
 - Sequential execution increases workflow completion time
 
 ### Recommendations
+
 - Implement a matrix strategy for testing across Node.js versions (✅ Implemented)
 - Run independent steps in parallel (✅ Implemented)
 - Add workflow concurrency limitations to prevent conflicts (✅ Implemented)
@@ -483,7 +508,7 @@ jobs:
       matrix:
         node-version: [18.x, 20.x]
       fail-fast: false
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -494,7 +519,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
 
       # ... rest of the steps ...
 
@@ -504,16 +529,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-      
+          node-version: "20"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run linting
         run: npm run lint
 ```
@@ -523,10 +548,12 @@ jobs:
 ## 11. Better Version Management for Major Changes
 
 ### Current Issues
+
 - Limited detection of breaking changes
 - Only looks at commit messages for BREAKING CHANGE notation
 
 ### Recommendations
+
 - Enhance version detection logic (✅ Implemented)
 - Check PR title and body for breaking change indicators (✅ Implemented)
 - Implement semantic release standards more comprehensively (✅ Implemented)
@@ -558,10 +585,10 @@ jobs:
 
     # Check PR title for conventional commit format
     PR_TITLE="${{ github.event.pull_request.title }}"
-    
+
     # Look for breaking changes in PR body too
     PR_BODY="${{ github.event.pull_request.body }}"
-    
+
     # Find all conventional commits in the PR
     HIGHEST_BUMP="none"
 
@@ -599,12 +626,14 @@ jobs:
 To effectively implement these improvements, follow this suggested order:
 
 1. **First Phase** (High impact, low risk) ✅ Completed
+
    - Consolidate workflows (remove duplicate `release.yml`) ✅
    - Implement caching improvements ✅
-   - Optimize workflow triggers ✅ 
+   - Optimize workflow triggers ✅
    - Add documentation comments ✅
 
 2. **Second Phase** (Medium complexity) ✅ Completed
+
    - Enhance webhook execution with retry logic ✅
    - Implement error handling and reporting ⬜
    - Set up parallelization for tests ✅
@@ -620,6 +649,7 @@ To effectively implement these improvements, follow this suggested order:
 These improvements have enhanced the GitHub Actions workflows, making them more maintainable, efficient, and robust. We've implemented most of the high-priority changes, and additional improvements can be made in the future as needed.
 
 The enhanced workflows now provide:
+
 - Faster build and test cycles with improved caching
 - More reliable releases with better version detection
 - Improved security practices with automated dependency updates and security scanning

@@ -13,7 +13,7 @@ on:
       - "src/**"
       - "**.y{a,}ml"
       - "package*.json"
-      - "jest.config.js"
+      - "jest.config.cjs"
     branches-ignore:
       - "dependabot/**"
       - "docs/**"
@@ -22,7 +22,7 @@ on:
       - "src/**"
       - "**.y{a,}ml"
       - "package*.json"
-      - "jest.config.js"
+      - "jest.config.cjs"
     branches:
       - main
       - "feature/**"
@@ -64,7 +64,7 @@ jobs:
 
       # Run tests with Jest
       - name: Run tests
-        run: NODE_ENV=test npx jest --config jest.config.js --passWithNoTests
+        run: NODE_ENV=test npx jest --config jest.config.cjs --passWithNoTests
         shell: bash
 
       # Security check for dependencies

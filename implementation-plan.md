@@ -31,7 +31,7 @@ yml-change-webhook/
 ├── action.yml                     # Action metadata file
 ├── package.json                   # Node.js package information
 ├── package-lock.json              # Dependency lock file
-├── jest.config.js                 # Jest configuration
+├── jest.config.cjs                 # Jest configuration
 ├── .eslintrc.js                   # ESLint configuration
 ├── .gitignore                     # Git ignore configuration
 ├── CONTRIBUTING.md                # Guidelines for contributors
@@ -53,6 +53,7 @@ yml-change-webhook/
 ### Phase 2: Core Implementation (3-4 days)
 
 1. **Git Change Detection System**
+
    - [x] ~~Implement code to detect YML changes in push events~~
    - [x] ~~Implement code to detect YML changes in pull request events~~
    - [ ] Add support for custom file path filtering
@@ -60,6 +61,7 @@ yml-change-webhook/
    - [ ] Add file exclusion patterns (e.g., ignore files in certain directories)
 
 2. **YML Parsing System**
+
    - [x] ~~Implement basic YML parsing~~
    - [x] ~~Implement webhook URL extraction~~
    - [ ] Add support for different webhook location patterns
@@ -115,24 +117,24 @@ The change detection system will rely on Git's diff functionality to identify wh
 function detectChanges(baseRef) {
   try {
     let command;
-    
-    if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
-      const base = baseRef || process.env.GITHUB_BASE_REF || 'main';
+
+    if (process.env.GITHUB_EVENT_NAME === "pull_request") {
+      const base = baseRef || process.env.GITHUB_BASE_REF || "main";
       command = `git diff --name-only origin/${base}...HEAD`;
     } else {
       // For push events, compare with the previous commit
-      command = 'git diff --name-only HEAD^';
+      command = "git diff --name-only HEAD^";
     }
-    
+
     const output = execSync(command).toString().trim();
-    
+
     if (!output) {
       return [];
     }
-    
+
     return output
-      .split('\n')
-      .filter(file => file.endsWith('.yml') || file.endsWith('.yaml'));
+      .split("\n")
+      .filter((file) => file.endsWith(".yml") || file.endsWith(".yaml"));
   } catch (error) {
     core.warning(`Error detecting changes: ${error.message}`);
     return [];
@@ -145,27 +147,27 @@ function detectChanges(baseRef) {
 The parsing system will be extended to support different patterns for webhook definitions:
 
 ```javascript
-function extractWebhooks(filePath, patterns = ['x-update-webhooks']) {
+function extractWebhooks(filePath, patterns = ["x-update-webhooks"]) {
   try {
-    const content = fs.readFileSync(filePath, 'utf8');
+    const content = fs.readFileSync(filePath, "utf8");
     const parsed = yaml.load(content);
-    
+
     if (!parsed) {
       return [];
     }
-    
+
     // Try multiple patterns for webhook extraction
     let webhooks = [];
-    
+
     for (const pattern of patterns) {
       if (parsed[pattern] && Array.isArray(parsed[pattern])) {
-        const urls = parsed[pattern].filter(url => 
-          typeof url === 'string' && url.startsWith('http')
+        const urls = parsed[pattern].filter(
+          (url) => typeof url === "string" && url.startsWith("http")
         );
         webhooks = [...webhooks, ...urls];
       }
     }
-    
+
     return webhooks;
   } catch (error) {
     core.warning(`Error parsing ${filePath}: ${error.message}`);
@@ -184,77 +186,83 @@ async function executeWebhooks(webhooks, options = {}) {
     maxRetries = 3,
     retryDelay = 1000,
     customHeaders = {},
-    customPayload = null
+    customPayload = null,
   } = options;
-  
+
   const results = [];
   const uniqueWebhooks = [...new Set(webhooks)];
-  
+
   for (const url of uniqueWebhooks) {
     let success = false;
     let attempt = 0;
     let lastError = null;
-    
+
     // Prepare request data
     const headers = {
-      'Content-Type': 'application/json',
-      'User-Agent': 'yml-change-webhook-action',
-      ...customHeaders
+      "Content-Type": "application/json",
+      "User-Agent": "yml-change-webhook-action",
+      ...customHeaders,
     };
-    
+
     const payload = customPayload || {
-      source: 'yml-change-webhook',
-      timestamp: new Date().toISOString()
+      source: "yml-change-webhook",
+      timestamp: new Date().toISOString(),
     };
-    
+
     // Retry loop
     while (!success && attempt < maxRetries) {
       attempt++;
-      
+
       try {
-        core.info(`Executing webhook (attempt ${attempt}/${maxRetries}): ${maskUrl(url)}`);
-        
+        core.info(
+          `Executing webhook (attempt ${attempt}/${maxRetries}): ${maskUrl(url)}`
+        );
+
         const response = await axios.post(url, payload, { headers });
-        
+
         success = true;
         results.push({
           url: maskUrl(url),
           success: true,
           status: response.status,
-          attempt
+          attempt,
         });
-        
-        core.info(`Webhook executed successfully: ${maskUrl(url)} (Status: ${response.status})`);
+
+        core.info(
+          `Webhook executed successfully: ${maskUrl(url)} (Status: ${response.status})`
+        );
       } catch (error) {
         lastError = error;
-        
-        const errorMessage = error.response 
+
+        const errorMessage = error.response
           ? `Status: ${error.response.status}, Message: ${error.response.statusText}`
           : error.message;
-        
-        core.warning(`Webhook execution failed (attempt ${attempt}/${maxRetries}): ${maskUrl(url)} - ${errorMessage}`);
-        
+
+        core.warning(
+          `Webhook execution failed (attempt ${attempt}/${maxRetries}): ${maskUrl(url)} - ${errorMessage}`
+        );
+
         if (attempt < maxRetries) {
           // Wait before retrying
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
       }
     }
-    
+
     if (!success) {
-      const errorMessage = lastError.response 
+      const errorMessage = lastError.response
         ? `Status: ${lastError.response.status}, Message: ${lastError.response.statusText}`
         : lastError.message;
-      
+
       results.push({
         url: maskUrl(url),
         success: false,
         error: errorMessage,
-        attempts: attempt
+        attempts: attempt,
       });
     }
   }
-  
+
   return results;
 }
 ```
@@ -263,18 +271,18 @@ async function executeWebhooks(webhooks, options = {}) {
 
 The action will be extended to support additional configuration options:
 
-| Input | Description | Default |
-|-------|-------------|---------|
-| `base_ref` | Base reference for comparing changes | '' |
-| `file_pattern` | Glob pattern for YML files to check | '**/*.{yml,yaml}' |
-| `exclude_pattern` | Glob pattern for files to exclude | '' |
+| Input              | Description                                             | Default             |
+| ------------------ | ------------------------------------------------------- | ------------------- |
+| `base_ref`         | Base reference for comparing changes                    | ''                  |
+| `file_pattern`     | Glob pattern for YML files to check                     | '\*_/_.{yml,yaml}'  |
+| `exclude_pattern`  | Glob pattern for files to exclude                       | ''                  |
 | `webhook_patterns` | Comma-separated list of YML fields to look for webhooks | 'x-update-webhooks' |
-| `custom_headers` | JSON string of headers to include in webhook requests | '{}' |
-| `custom_payload` | Custom payload template for webhook requests | '' |
-| `max_retries` | Maximum number of retries for failed webhooks | '3' |
-| `retry_delay` | Delay between retries in milliseconds | '1000' |
-| `batch_webhooks` | Whether to batch webhook calls | 'false' |
-| `verbose_logging` | Enable detailed logging | 'false' |
+| `custom_headers`   | JSON string of headers to include in webhook requests   | '{}'                |
+| `custom_payload`   | Custom payload template for webhook requests            | ''                  |
+| `max_retries`      | Maximum number of retries for failed webhooks           | '3'                 |
+| `retry_delay`      | Delay between retries in milliseconds                   | '1000'              |
+| `batch_webhooks`   | Whether to batch webhook calls                          | 'false'             |
+| `verbose_logging`  | Enable detailed logging                                 | 'false'             |
 
 ## Security Considerations
 

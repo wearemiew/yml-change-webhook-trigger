@@ -31,7 +31,7 @@ jobs:
 
       # Run tests to ensure everything is working
       - name: Run tests
-        run: NODE_ENV=test npx jest --config jest.config.js --passWithNoTests
+        run: NODE_ENV=test npx jest --config jest.config.cjs --passWithNoTests
         shell: bash
 
       # Build the action using ncc (creates the dist directory)

@@ -394,7 +394,7 @@ jobs:
       # Ensures the code is in a good state before building and releasing.
       - name: Run tests
         if: steps.setup-release.outputs.should_release == 'true' && steps.setup-release.outputs.version != 'unknown'
-        run: NODE_ENV=test npx jest --config jest.config.js --passWithNoTests
+        run: NODE_ENV=test npx jest --config jest.config.cjs --passWithNoTests
         shell: bash
 
       # Step 11: Build the action (e.g., using ncc)
