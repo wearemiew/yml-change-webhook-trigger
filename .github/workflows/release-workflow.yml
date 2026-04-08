@@ -84,7 +84,7 @@ jobs:
       # Step 3: Checkout the repository
       # This step is needed to access the repository's code, like package.json or commit history.
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Fetch full history for better commit analysis
 
@@ -380,7 +380,7 @@ jobs:
       # Step 8: Setup Node.js environment
       - name: Setup Node.js
         if: steps.setup-release.outputs.should_release == 'true' && steps.setup-release.outputs.version != 'unknown'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20" # Specify Node.js version
           cache: "npm" # Cache npm dependencies
