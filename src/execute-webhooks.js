@@ -135,7 +135,7 @@ function maskUrl(url) {
         : urlObj.pathname;
 
     return `${urlObj.protocol}//${host}${path}`;
-  } catch (e) {
+  } catch {
     // If URL parsing fails, return a generic masked version
     return url.substring(0, 10) + "..." + url.substring(url.length - 5);
   }
