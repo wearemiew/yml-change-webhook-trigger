@@ -44,7 +44,7 @@
     "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-jest": "^29.9.0",
+    "eslint-plugin-jest": "^29.15.2",
     "jest": "^30.2.0",
     "prettier": "^3.7.4"
   },
