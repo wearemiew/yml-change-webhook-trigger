@@ -153,7 +153,15 @@ npm install
 ### Testing
 
 ```bash
-npm test
+npm test          # run the Jest suite
+npm run test:watch
+```
+
+### Linting & Formatting
+
+```bash
+npm run lint      # eslint .
+npm run format    # prettier --write on js/json/yml/yaml
 ```
 
 ### Local Development
@@ -165,6 +173,8 @@ The `dist` directory containing the compiled code is not checked into the reposi
 3. Test your changes with `npm test`
 
 The `dist` directory is only built and included in the repository when a release is created.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow, and [docs/workflows.md](docs/workflows.md) for how the CI/CD pipeline fits together.
 
 ### Release Process
 
@@ -200,4 +210,4 @@ Contributions are welcome! Please open an issue or submit a pull request.
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the MIT License (see the `license` field in `package.json`).
