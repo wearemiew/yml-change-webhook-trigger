@@ -86,6 +86,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          ref: main # Always release from main, regardless of trigger type - the repo's default branch is dev, and workflow_run events otherwise default to it
           fetch-depth: 0 # Fetch full history for better commit analysis
 
       # Step 4: Manual version bump (only for workflow_dispatch trigger)
