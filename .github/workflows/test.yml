@@ -25,6 +25,7 @@ on:
       - "jest.config.cjs"
     branches:
       - main
+      - dev
       - "feature/**"
 
 # Add concurrency control to prevent multiple workflows from running simultaneously
