@@ -9,7 +9,13 @@ updates:
       - "dependencies"
       - "automerge"
     versioning-strategy: auto
-    
+    ignore:
+      # @actions/core@3.x is ESM-only; this repo's CommonJS source and ncc
+      # build break during `npm ci` (prepare -> ncc build fails to resolve
+      # the package's `exports` map). See issue #136 / PR #115.
+      - dependency-name: "@actions/core"
+        versions: [">=3.0.0"]
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

@@ -3,6 +3,9 @@
   "version": "1.9.4",
   "description": "GitHub Action to detect YML changes and trigger webhooks",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "build": "ncc build src/index.js -o dist && node -e \"require('fs').writeFileSync('dist/package.json', JSON.stringify({type: 'commonjs'}))\"",
     "test": "cross-env NODE_ENV=test jest --config jest.config.cjs --passWithNoTests",

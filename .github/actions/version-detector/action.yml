@@ -6,5 +6,5 @@ outputs:
   bump_type:
     description: "Determined bump type (major, minor, patch, none)"
 runs:
-  using: "node20"
+  using: "node24"
   main: "index.js"
