@@ -11,7 +11,8 @@ on:
   push:
     paths:
       - "src/**"
-      - "**.y{a,}ml"
+      - "**.yml"
+      - "**.yaml"
       - "package*.json"
       - "jest.config.cjs"
     branches-ignore:
@@ -20,11 +21,13 @@ on:
   pull_request:
     paths:
       - "src/**"
-      - "**.y{a,}ml"
+      - "**.yml"
+      - "**.yaml"
       - "package*.json"
       - "jest.config.cjs"
     branches:
       - main
+      - dev
       - "feature/**"
 
 # Add concurrency control to prevent multiple workflows from running simultaneously
