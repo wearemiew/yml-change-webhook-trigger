@@ -51,7 +51,11 @@ jobs:
           git-push: true
           git-message: "chore(release): {version}"
           skip-tag: false
-          skip-on-empty: true
+          # false: always commit/tag/push when a bump type is determined, even if the
+          # rendered changelog body comes out empty (e.g. a merge whose commits are
+          # mostly chore/ci/build types the Angular preset hides from the changelog).
+          # Previously true, which silently skipped the version bump entirely - see #152.
+          skip-on-empty: false
 
       # Update version in package.json if bump type is not none
       - name: Update package.json version
