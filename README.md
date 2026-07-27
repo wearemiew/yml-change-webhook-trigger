@@ -136,7 +136,7 @@ For a detailed look at webhook triggers during this workflow run. Total changed 
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24+
 - npm or yarn
 
 ### Setup

@@ -382,7 +382,7 @@ jobs:
         if: steps.setup-release.outputs.should_release == 'true' && steps.setup-release.outputs.version != 'unknown'
         uses: actions/setup-node@v7
         with:
-          node-version: "20" # Specify Node.js version
+          node-version: "24" # Specify Node.js version
           cache: "npm" # Cache npm dependencies
 
       # Step 9: Install dependencies
