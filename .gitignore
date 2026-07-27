@@ -45,3 +45,6 @@ coverage/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Claude Code local settings (machine-specific, not for version control)
+.claude/settings.local.json
