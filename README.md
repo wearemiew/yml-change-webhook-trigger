@@ -1,121 +1,161 @@
 <img class="logo" src="https://github.com/wearemiew/.github/raw/main/static/miew-banner.png" alt="Miew Banner"/>
 
-# yml-change-webhook
+# YML Change Webhook
 
-A GitHub Action that detects changes in YML files and triggers webhooks in response to those changes.
+### Your config files, finally allowed to speak for themselves.
 
-## Overview
+Drop a `x-update-webhooks:` list inside any `.yml` file. The moment that file changes, this Action tells the outside world — no bespoke CI glue, no forgotten notification step, no "who was supposed to redeploy the docs?"
 
-The `yml-change-webhook` GitHub Action automates the process of monitoring YML file changes within your repository and executing webhooks based on those changes. This action is perfect for scenarios where external systems need to be notified or updated whenever configuration files are modified.
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-YML%20Change%20Webhook-2b3137?logo=github&logoColor=white)](https://github.com/marketplace/actions/yml-change-webhook)
+[![Release](https://img.shields.io/github/v/release/wearemiew/yml-change-webhook-trigger?color=0969da&label=release)](https://github.com/wearemiew/yml-change-webhook-trigger/releases)
+[![Tests](https://github.com/wearemiew/yml-change-webhook-trigger/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/wearemiew/yml-change-webhook-trigger/actions/workflows/test.yml)
+[![Node](https://img.shields.io/badge/node-24-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 
-## Features
+---
 
-- **Intelligent Change Detection**: Accurately identifies which YML files have been modified in both `push` and `pull_request` events
-- **Webhook Automation**: Extracts webhook URLs from YML files and triggers them automatically
-- **Detailed Reporting**: Generates a summary report of triggered webhooks and their execution status
-- **Flexible Configuration**: Works with customizable options to fit your specific workflow requirements
-- **Seamless Integration**: Easily incorporate into any GitHub workflow that relies on YML configuration
-- **Reliability**: Handles webhook failures with retries and detailed error reporting
-- **Parallel Processing**: Efficiently processes multiple webhooks for better performance
+## Why this exists
 
-## Usage
+Configuration lives in YAML. The systems that *care* about that configuration live somewhere else — a docs builder, a cache, a Slack channel, a service that needs to reload.
 
-Add this action to your GitHub workflow file:
+The usual fix is a workflow step per consumer, hand-maintained, drifting quietly out of date until someone notices the docs are three weeks stale.
+
+This Action inverts it. **The file declares its own subscribers.** Whoever owns the YAML owns the notification list, right there in the file they're already editing. CI just reads it and delivers.
+
+```diff
+  service: api-gateway
+  timeout: 30
+
++ x-update-webhooks:
++   - https://docs.example.com/api/rebuild
++   - https://deploy.example.com/reload-config
+```
+
+That's the whole contract.
+
+## Quickstart
 
 ```yaml
 name: YML Change Notification
+
 on:
   push:
-    paths:
-      - "**.yml"
-      - "**.yaml"
+    paths: ["**.yml", "**.yaml"]
   pull_request:
-    paths:
-      - "**.yml"
-      - "**.yaml"
+    paths: ["**.yml", "**.yaml"]
 
 jobs:
   notify-changes:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7.0.1
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # required — the Action diffs against history
 
       - name: Detect YML Changes & Trigger Webhooks
         uses: wearemiew/yml-change-webhook-trigger@v1
         with:
-          # Optional: Specify base reference for comparison (useful in PR scenarios)
+          # Optional: base branch to diff against (handy in PRs)
           base_ref: ${{ github.event.pull_request.base.ref }}
 ```
 
-> **Note**: You can use any of the following tag references:
-> - `@v1` - Always points to the latest v1.x.x release
-> - `@v1.0` - Always points to the latest v1.0.x release
-> - `@v1.0.1` - Points to the specific v1.0.1 release
+> **`fetch-depth: 0` is not optional.** Without full history, `git diff` has nothing to compare against and the Action will find zero changed files.
+
+### Version pinning
+
+| Reference   | Resolves to                        |
+| ----------- | ---------------------------------- |
+| `@v1`       | latest `v1.x.x` — recommended      |
+| `@v1.9`     | latest `v1.9.x`                    |
+| `@v1.9.6`   | that exact release, frozen         |
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[Push / PR] --> B[Diff changed files]
+    B --> C{".yml or .yaml?"}
+    C -- no --> Z[Exit cleanly]
+    C -- yes --> D[Parse x-update-webhooks]
+    D --> E{Any URLs?}
+    E -- no --> Z
+    E -- yes --> F[De-duplicate URLs]
+    F --> G[POST · 5 at a time · retry 1s/2s/4s]
+    G --> H[Markdown report in job summary]
+    G --> I[Outputs: changed_files, webhook_results]
+```
+
+1. **Detect** — `git diff` scoped to the event. Pull requests diff against `origin/<base_ref>...HEAD`; pushes use the real commit range from the event payload, with sane fallbacks all the way down to a repo's very first commit.
+2. **Parse** — each changed file is loaded with `js-yaml` and read for a top-level `x-update-webhooks` array. Entries must be strings starting with `http`.
+3. **Deliver** — URLs are de-duplicated (first file wins for reporting), then POSTed five at a time with a 10s timeout and exponential-backoff retries.
+4. **Report** — a Markdown table lands in the workflow summary; machine-readable results land in the Action outputs.
+
+Nothing throws. A malformed file, an unreachable endpoint, or zero matches degrade into warnings and a clean exit — a broken webhook never takes your pipeline down with it.
+
+## The payload
+
+Every subscriber receives a `POST` with `Content-Type: application/json` and `User-Agent: YML-Change-Webhook-Action`:
+
+```json
+{
+  "source": "yml-change-webhook",
+  "file": "config/api.yml",
+  "repository": "wearemiew/your-repo",
+  "ref": "refs/heads/main",
+  "sha": "9f2c1ab…",
+  "timestamp": "2026-07-27T12:30:45.123Z"
+}
+```
+
+Enough to answer *what changed, where, and when* — and to go fetch the rest yourself if you need it.
 
 ## Inputs
 
-| Input      | Description                          | Required | Default |
-| ---------- | ------------------------------------ | -------- | ------- |
-| `base_ref` | Base reference for comparing changes | No       | ''      |
+| Input      | Description                                          | Required | Default |
+| ---------- | ---------------------------------------------------- | -------- | ------- |
+| `base_ref` | Base reference for comparison (useful in PR scenarios) | No       | `''`    |
 
 ## Outputs
 
-| Output            | Description                                              |
-| ----------------- | -------------------------------------------------------- |
-| `changed_files`   | JSON array of YML files that changed                      |
-| `webhook_results` | JSON array of webhook execution results with file mappings |
+| Output            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| `changed_files`   | JSON array of the `.yml` / `.yaml` files that changed          |
+| `webhook_results` | JSON array of results — masked URL, source file, status, duration, timestamp |
 
-## YML File Structure
-
-The action expects webhook URLs to be defined in your YML files using a specific structure:
+Chain them into whatever comes next:
 
 ```yaml
-# Example config.yml
-service: myService
-config:
-  timeout: 30
-  retries: 3
+- id: webhooks
+  uses: wearemiew/yml-change-webhook-trigger@v1
 
-# Webhook definitions
-x-update-webhooks:
-  - https://api.example.com/notify
-  - https://webhook.site/your-unique-id
+- name: Announce in Slack
+  if: steps.webhooks.outputs.changed_files != '[]'
+  run: echo "Changed → ${{ steps.webhooks.outputs.changed_files }}"
 ```
 
-When this YML file changes, the action will automatically trigger all webhooks listed in the `x-update-webhooks` array.
+## Built-in reporting
 
-## Webhook Execution Report
-
-The action automatically generates a detailed report of webhook executions directly in the GitHub Actions workflow summary. This report includes:
-
-- A summary of files that triggered webhooks
-- A detailed list of all webhook executions with their status and duration
-
-This report helps you quickly identify which files triggered which webhooks and whether those webhook calls were successful.
-
-Example report:
+Every run writes a summary straight into the GitHub Actions job page — no digging through logs:
 
 ```markdown
 # Webhook Trigger Summary
 
-For a detailed look at webhook triggers during this workflow run. Total changed files: 2
+Total changed files: 2
 
 ## Files Changed
 
-| File | Webhook Count | Success Rate |
-| ---- | ------------- | ------------ |
-| config/api.yml | 1 | 100% |
-| settings/notifications.yml | 2 | 50% |
+| File                       | Webhook Count | Success Rate |
+| -------------------------- | ------------- | ------------ |
+| config/api.yml             | 1             | 100%         |
+| settings/notifications.yml | 2             | 50%          |
 
 ## Webhook Executions
 
-| File | Webhook | Status | Duration | Timestamp |
-| ---- | ------- | ------ | -------- | --------- |
-| config/api.yml | https://example.com/webhook1 | ✅ success | 340ms | 12:30:45 |
-| settings/notifications.yml | https://example.com/webhook2 | ✅ success | 220ms | 12:30:46 |
-| settings/notifications.yml | https://example.com/webhook3 | ❌ failed | - | 12:30:47 |
+| File                       | Webhook                      | Status     | Duration | Timestamp |
+| -------------------------- | ---------------------------- | ---------- | -------- | --------- |
+| config/api.yml             | https://example.com/web...k1 | ✅ success | 340ms    | 12:30:45  |
+| settings/notifications.yml | https://example.com/web...k2 | ✅ success | 220ms    | 12:30:46  |
+| settings/notifications.yml | https://example.com/web...k3 | ❌ failed  | 10004ms  | 12:30:57  |
 
 ## Overall Statistics
 
@@ -125,89 +165,65 @@ For a detailed look at webhook triggers during this workflow run. Total changed 
 - **Success Rate:** 67%
 ```
 
-## Use Cases
+## Reliability & security
 
-- **Automated Configuration Updates**: Update services when their configuration changes
-- **CI/CD Pipeline Integration**: Trigger downstream processes based on build config modifications
-- **Documentation Synchronization**: Keep documentation in sync with YML changes
-- **Infrastructure as Code**: Notify infrastructure management tools of changes to definitions
+| Concern            | How it's handled                                                                 |
+| ------------------ | -------------------------------------------------------------------------------- |
+| Flaky endpoints    | Up to 4 attempts per URL — initial call plus retries at 1s, 2s and 4s              |
+| Slow endpoints     | 10-second timeout per request                                                     |
+| Many endpoints     | Bounded concurrency — 5 requests in flight at a time                              |
+| Duplicate URLs     | De-duplicated across all changed files before any request goes out                |
+| Tokens in URLs     | Every URL is host + truncated-path masked **before** it touches a log or an output |
+| Anything unexpected | Reported through `core.warning` / `core.setFailed` — the job never crashes on you |
+
+Webhook URLs frequently carry secrets in the path or query string. This Action assumes yours do: nothing is ever printed or exported in full. Even so, prefer endpoints that authenticate the *payload*, not the URL.
+
+## Good fits
+
+- **Docs that rebuild themselves** — edit the spec, the site regenerates.
+- **Config reloads** — a service picks up its new settings without a deploy.
+- **Cache invalidation** — the CDN hears about it the moment the file lands.
+- **Infrastructure as Code** — notify the tools that track your definitions.
+- **Cross-repo choreography** — one repo's YAML nudges another repo's pipeline.
+
+Working examples live in [`examples/`](examples/).
 
 ## Development
 
-### Prerequisites
-
-- Node.js 24+
-- npm or yarn
-
-### Setup
+Requires **Node.js 24+**.
 
 ```bash
-# Clone the repository
 git clone https://github.com/wearemiew/yml-change-webhook-trigger.git
 cd yml-change-webhook-trigger
-
-# Install dependencies
 npm install
+
+npm test          # Jest suite
+npm run lint      # eslint
+npm run format    # prettier
+npm run build     # ncc bundle → dist/
 ```
 
-### Testing
+`dist/` is git-ignored on purpose. It's a build artifact, committed only by the release workflow — never add it to a PR by hand.
 
-```bash
-npm test          # run the Jest suite
-npm run test:watch
-```
-
-### Linting & Formatting
-
-```bash
-npm run lint      # eslint .
-npm run format    # prettier --write on js/json/yml/yaml
-```
-
-### Local Development
-
-The `dist` directory containing the compiled code is not checked into the repository during development. When developing locally:
-
-1. Make your changes to the source files
-2. Run `npm run build` to create the `dist` directory locally
-3. Test your changes with `npm test`
-
-The `dist` directory is only built and included in the repository when a release is created.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow, and [docs/workflows.md](docs/workflows.md) for how the CI/CD pipeline fits together.
-
-### Release Process
-
-This project uses automated GitHub Actions workflows for releases:
-
-1. When PRs with conventional commit messages are merged to the `main` branch:
-   - The `auto-version.yml` workflow uses conventional-changelog-action to analyze commits and determine version bumps:
-     - Features (`feat:`) trigger minor version bumps
-     - Fixes (`fix:`) trigger patch version bumps
-     - Breaking changes (`BREAKING CHANGE:` or `feat!:`) trigger major version bumps
-   - The `release-workflow.yml` automatically creates a release with the new version
-
-2. When a release is created, the `publish.yml` workflow:
-   - Runs tests and builds the action
-   - Commits the `dist` directory to the repository (even though it's in .gitignore)
-   - Updates the major version tag (e.g., `v1`) and the major.minor version tag (e.g., `v1.0`)
-
-You can also manually trigger a release using the GitHub Actions interface by running the `Release Workflow` with your choice of version bump (patch, minor, or major).
-
-## CI/CD Improvements
-
-This project includes several optimizations in its GitHub Actions workflows:
-
-- **Matrix Testing**: Tests across multiple Node.js versions for compatibility
-- **Dependency Management**: Automated dependency updates with Dependabot
-- **Caching**: Improved build times with artifact and dependency caching
-- **Security Scanning**: Weekly security audits of dependencies
-- **Conventional Commits**: Automated versioning based on commit messages
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/); the version bump is derived from them automatically (`fix:` → patch, `feat:` → minor, `feat!:` / `BREAKING CHANGE:` → major). Releases, floating `vN` / `vN.M` tags and the Marketplace listing are all handled by chained workflows — the full picture is in [docs/workflows.md](docs/workflows.md).
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
+Issues and pull requests are genuinely welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-This project is licensed under the MIT License (see the `license` field in `package.json`).
+Released under the [MIT License](LICENSE.md). Copyright © 2025-2026 [MIEW](https://miew.io).
+
+---
+
+<div align="center">
+
+**Made with [Claude](https://claude.ai) and explorer spirit.** 🧭
+
+Built by [MIEW](https://miew.io) — a digital product studio.
+We build the future, one commit at a time.
+
+[Website](https://miew.io) · [Substack](https://miewproduct.substack.com/) · [LinkedIn](https://www.linkedin.com/company/miew/) · [Instagram](https://www.instagram.com/wearemiew/) · [Dribbble](https://dribbble.com/wearemiew) · [Behance](https://www.behance.net/miew)
+
+</div>

@@ -1,5 +1,5 @@
 name: "YML Change Webhook"
-description: "Detects changes in YML files and triggers webhooks in response"
+description: "Let your YAML declare its own subscribers. Detects changed .yml/.yaml files, reads their x-update-webhooks list, and POSTs to every URL with retries, masking and a job summary."
 author: "Miew"
 branding:
   icon: "hook"

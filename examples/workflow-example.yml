@@ -5,15 +5,15 @@ name: YML Change Notification Workflow
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'config/**/*.yml'
-      - 'config/**/*.yaml'
+      - "config/**/*.yml"
+      - "config/**/*.yaml"
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'config/**/*.yml'
-      - 'config/**/*.yaml'
+      - "config/**/*.yml"
+      - "config/**/*.yaml"
 
 jobs:
   notify-changes:
@@ -21,17 +21,18 @@ jobs:
     steps:
       # Checkout the repository with enough history for comparisons
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7.0.1
         with:
-          fetch-depth: 0  # This is important for accurate Git diff
-      
+          fetch-depth: 0 # This is important for accurate Git diff
+
       # Use the yml-change-webhook action to detect changes and trigger webhooks
       - name: Detect YML Changes & Trigger Webhooks
-        uses: wearemiew/yml-change-webhook@v1
+        id: detect-yml-changes
+        uses: wearemiew/yml-change-webhook-trigger@v1
         with:
           # For pull requests, use the PR base branch for comparison
           base_ref: ${{ github.event.pull_request.base.ref }}
-      
+
       # Optional: Use the output in subsequent steps
       - name: Log changed files
         if: steps.detect-yml-changes.outputs.changed_files != '[]'
