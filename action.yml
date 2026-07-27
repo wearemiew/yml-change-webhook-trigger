@@ -18,5 +18,5 @@ outputs:
     description: "JSON array of webhook execution results with file mappings."
 
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"
