@@ -37,6 +37,8 @@ jobs:
     # runs-on: ubuntu-latest
     runs-on:
       labels: [test]
+    permissions:
+      contents: read
     strategy:
       matrix:
         # node-version: [18.x, 20.x]
@@ -86,6 +88,8 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
