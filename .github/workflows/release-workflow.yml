@@ -88,6 +88,10 @@ jobs:
         with:
           ref: main # Always release from main, regardless of trigger type - the repo's default branch is dev, and workflow_run events otherwise default to it
           fetch-depth: 0 # Fetch full history for better commit analysis
+          # RELEASE_TOKEN (a PAT with Write role) is required, not GITHUB_TOKEN: main's
+          # ruleset requires PRs for everyone except the Write-role bypass - GITHUB_TOKEN
+          # authenticates as the github-actions bot, which has no bypass path available.
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       # Step 4: Manual version bump (only for workflow_dispatch trigger)
       # If the workflow is triggered manually, this step bumps the version in package.json
