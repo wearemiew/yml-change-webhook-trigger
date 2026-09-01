@@ -46,7 +46,7 @@
   "dependencies": {
     "@actions/core": "^2.0.3",
     "@actions/github": "^9.1.1",
-    "axios": "^1.18.1",
+    "axios": "^1.20.0",
     "js-yaml": "^5.2.2"
   },
   "devDependencies": {
